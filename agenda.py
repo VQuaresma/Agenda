@@ -36,21 +36,19 @@ def saida():
     return res
 
 def inserir(conexao):
-
     nome = input('Digite o nome da pessoa: ')
     telefone = input('Digite o telefone da pessoa: ')
     email = input('Digite o email da pessoa: ')
 
-    InserirSql=f"""INSERT INTO tb_contatos (
-            T_NOMECONTATO, 
-            T_TELEFONECONTATO, 
-            T_EMAILCONTATO) 
-            VALUES('{nome}', '{telefone}', '{email}')"""
-
-
+    InserirSql = """INSERT INTO tb_contatos (
+                    T_NOMECONTATO, 
+                    T_TELEFONECONTATO, 
+                    T_EMAILCONTATO) 
+                    VALUES (?, ?, ?)"""
+    
     try:
         c=conexao.cursor()
-        c.execute(InserirSql)
+        c.execute(InserirSql, (nome, telefone, email))
         conexao.commit()
         print("Registro inserido")
         
@@ -60,13 +58,14 @@ def inserir(conexao):
         c.close()
 
 def DeletarDados(conexao):
+    MostrarTodos(vcon)
 
-    registro= int(input("Digite o número do id que deseja deletar: "))
-    DeletarSql = f'DELETE FROM tb_contatos WHERE N_IDCONTATO={registro}'
+    registro= str(input("Digite o número do id que deseja deletar: "))
+    DeletarSql = f'DELETE FROM tb_contatos WHERE N_IDCONTATO=?'
     
     try:
         c=conexao.cursor()
-        c.execute(DeletarSql)
+        c.execute(DeletarSql, (registro,))
         conexao.commit()
         print("Registro deletado")
     except Error as ex:
@@ -76,33 +75,30 @@ def DeletarDados(conexao):
 
 def ConsultarId(conexao):
     try:
-        InputId = int(input('Digite o numero do Id que desejas consultar: '))
-        ConsultaIdSql = f'SELECT * FROM tb_contatos WHERE N_IDCONTATO ={InputId} '
-
+        InputId = str(input('Digite o numero do Id que desejas consultar: '))
+        ConsultaIdSql = f'SELECT * FROM tb_contatos WHERE N_IDCONTATO =? '
         c=conexao.cursor()
-        c.execute(ConsultaIdSql)
+        c.execute(ConsultaIdSql, (InputId,))
         resultado=c.fetchall()
         return resultado
     except Error as ex:
         print(ex)
     finally:
         c.close()
-
 
 def ConsultarNome(conexao):
     try:
         InputNome = str(input('Digite o nome que desejas consultar: '))
-        ConsultaNomeSql = f"""SELECT * FROM tb_contatos WHERE T_NOMECONTATO ='{InputNome}' """
+        ConsultaNomeSql = f"""SELECT * FROM tb_contatos WHERE T_NOMECONTATO =? """
 
         c=conexao.cursor()
-        c.execute(ConsultaNomeSql)
+        c.execute(ConsultaNomeSql, (InputNome,))
         resultado=c.fetchall()
         return resultado
     except Error as ex:
         print(ex)
     finally:
         c.close()
-
 
 def MostrarTodos(conexao):
     MostrarSql ='SELECT * FROM tb_contatos'
@@ -128,13 +124,13 @@ def AtualizarDados(conexao):
         c = conexao.cursor()
 
         sel = int(input("Selecione o id do cadastro que você deseja alterar: "))
-        c.execute(f'SELECT * FROM tb_contatos WHERE N_IDCONTATO ={sel} ')
+        c.execute(f'SELECT * FROM tb_contatos WHERE N_IDCONTATO =?', (sel,))
 
         resultado = c.fetchall()
 
         os.system("cls")
 
-        print(f"ID: {resultado[0][0]}, Nome: {resultado[0][1]}, Data: {resultado[0][2]}, E-mail: {resultado[0][3]}")
+        print(f"ID: {resultado[0][0]}, Nome: {resultado[0][1]}, Telefone: {resultado[0][2]}, E-mail: {resultado[0][3]}")
         opcoes = {
         1: "N_IDCONTATO",
         2: "T_NOMECONTATO",
@@ -149,15 +145,14 @@ def AtualizarDados(conexao):
     """))
         os.system("cls")
         
-        
         DadoNovo = input("Digite o novo valor que ira ser atribuido: ")
 
-        AtualizarSql=F"UPDATE tb_contatos SET {opcoes[UpdateRes]} = '{DadoNovo}' WHERE N_IDCONTATO ={sel}"
-        c.execute(AtualizarSql)
+        AtualizarSql=F"UPDATE tb_contatos SET {opcoes[UpdateRes]} = ? WHERE N_IDCONTATO =?"
+  
+        c.execute(AtualizarSql, (DadoNovo, sel))
         conexao.commit()
         os.system("cls")
 
-        
         cont = 1
         while cont!=4:
             print('.'*cont)
@@ -172,8 +167,6 @@ def AtualizarDados(conexao):
     finally:
         c.close()
         
-
-
 while res!=7:
     menu()
     if res==1:
